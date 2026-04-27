@@ -433,3 +433,7 @@ lcov.info
 run_tests
 depend
 
+__pycache__/
+ld-wrapper
+a.out
+.una_config
