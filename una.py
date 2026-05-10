@@ -10,7 +10,7 @@ def get_env():
     env = os.environ.copy()
     # Path to our host-built LLVM tools
     project_root = Path(__file__).parent.parent.parent
-    host_bin = project_root / "bld" / "host" / "bin"
+    host_bin = project_root / "bld" / "tools" / "bin"
     env["PATH"] = f"{host_bin}:{env.get('PATH', '')}"
     return env
 
