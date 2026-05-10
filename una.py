@@ -4,8 +4,25 @@ import multiprocessing
 import shutil
 from pathlib import Path
 from mods.utils import get_target_triple
+from mods.build import SubprocessRunner
 from mods import colors
 from mods.build import get_build_env
+
+
+# Module-level runner, initialized when needed
+_runner = None
+
+def _get_runner(trace_file=None):
+    """Get or create the subprocess runner."""
+    global _runner
+    if _runner is None:
+        _runner = SubprocessRunner(trace_file)
+    return _runner
+
+def set_trace_file(trace_file):
+    """Set the trace file for subprocess logging."""
+    global _runner
+    _runner = SubprocessRunner(trace_file)
 
 def target_configure(staging_dir: Path, target_dir: Path, arch="x32"):
     colors.info(f"OpenSSL: target_configure ({arch})")
@@ -62,13 +79,13 @@ def target_configure(staging_dir: Path, target_dir: Path, arch="x32"):
         "NM=llvm-nm",
         "RANLIB=llvm-ranlib"
     ]
-    subprocess.run(cmd, cwd=repo_root, env=get_build_env(), check=True)
+    _get_runner().run(cmd, cwd=repo_root, env=get_build_env(), check=True)
 
 def target_build(staging_dir: Path, target_dir: Path, arch="x32"):
     colors.info(f"OpenSSL: target_build")
     repo_root = Path(__file__).parent
     make_jobs = multiprocessing.cpu_count()
-    subprocess.run(["make", f"-j{make_jobs}"], cwd=repo_root, env=get_build_env(), check=True)
+    _get_runner().run(["make", f"-j{make_jobs}"], cwd=repo_root, env=get_build_env(), check=True)
 
 def target_install(staging_dir: Path, target_dir: Path, arch="x32"):
     colors.info(f"OpenSSL: target_install")
@@ -76,11 +93,11 @@ def target_install(staging_dir: Path, target_dir: Path, arch="x32"):
     
     # 1. Install to staging (headers, libs, exe)
     colors.info(f"OpenSSL: installing to staging {staging_dir}")
-    subprocess.run(["make", f"DESTDIR={staging_dir}", "install"], cwd=repo_root, env=get_build_env(), check=True)
+    _get_runner().run(["make", f"DESTDIR={staging_dir}", "install"], cwd=repo_root, env=get_build_env(), check=True)
     
     # 2. Install to target (libs and executables only)
     colors.info(f"OpenSSL: installing to target {target_dir}")
-    subprocess.run(["make", f"DESTDIR={target_dir}", "install"], cwd=repo_root, env=get_build_env(), check=True)
+    _get_runner().run(["make", f"DESTDIR={target_dir}", "install"], cwd=repo_root, env=get_build_env(), check=True)
     
     # Prune target image
     colors.info(f"OpenSSL: pruning development files and documentation from target...")
