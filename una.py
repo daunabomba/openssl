@@ -22,7 +22,7 @@ def target_configure(staging_dir: Path, target_dir: Path, arch="x32"):
     std_flags = os.environ.get("CFLAGS", "")
     static_flags = os.environ.get("CFLAGS_STATIC", std_flags)
     
-    lld_path = project_root / "bld" / "host" / "bin" / "ld.lld"
+    lld_path = project_root / "bld" / "tools" / "bin" / "ld.lld"
     
     if arch == "x32":
         openssl_target = "linux-x32"
